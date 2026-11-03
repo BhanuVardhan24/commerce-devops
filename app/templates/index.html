@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Commerce Store</title>
+
+  <style>
+    body {
+      margin: 0;
+      background: #f4f7fb;
+      color: #183149;
+      font-family: system-ui, sans-serif;
+    }
+
+    main {
+      max-width: 960px;
+      margin: 64px auto;
+      padding: 0 24px;
+    }
+
+    .eyebrow {
+      color: #007f86;
+      font-weight: 700;
+    }
+
+    h1 {
+      font-size: clamp(32px, 6vw, 48px);
+      margin: 12px 0;
+    }
+
+    .products {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 24px;
+      margin-top: 32px;
+    }
+
+    .product {
+      background: white;
+      border: 1px solid #dce5ee;
+      border-radius: 16px;
+      padding: 24px;
+    }
+
+    .price {
+      font-size: 24px;
+      font-weight: 700;
+      color: #007f86;
+    }
+
+    footer {
+      margin-top: 40px;
+      color: #526579;
+      overflow-wrap: anywhere;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <p class="eyebrow">COMMERCE STORE</p>
+    <h1>Everyday essentials.</h1>
+    <p>Browse our collection. Cart and checkout are coming next.</p>
+
+    <section class="products" aria-label="Product catalog">
+      {% for product in products %}
+      <article class="product">
+        <h2>{{ product.name }}</h2>
+        <p class="price">
+          {{ product.currency }}
+          {{ "%.2f"|format(product.price_minor / 100) }}
+        </p>
+        <p>Product #{{ product.id }}</p>
+      </article>
+      {% endfor %}
+    </section>
+
+    <footer>
+      <p>Demo store using synthetic products.</p>
+      <p>Release: {{ version }}</p>
+    </footer>
+  </main>
+</body>
+</html>

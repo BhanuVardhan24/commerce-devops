@@ -49,4 +49,10 @@ product = get_json("/api/products/1")
 if product.get("id") != 1 or product.get("price_minor") != 19900:
     raise RuntimeError(f"Unexpected product response: {product}")
 
-print("PASS: container health and catalog smoke tests")
+with urllib.request.urlopen(f"{BASE_URL}/", timeout=2) as response:
+    storefront = response.read().decode("utf-8")
+
+if "DevOps Notebook" not in storefront or "Linux Mug" not in storefront:
+    raise RuntimeError("Storefront is missing expected products")
+
+print("PASS: health, catalog and storefront smoke tests")
