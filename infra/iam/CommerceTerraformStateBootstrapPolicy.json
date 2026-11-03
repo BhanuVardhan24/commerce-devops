@@ -1,0 +1,14 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AdministerOnlyDedicatedProjectStateStorage",
+      "Effect": "Allow",
+      "Action": "s3:*",
+      "Resource": [
+        "arn:aws:s3:::commerce-tfstate-036706657723-ap-south-1",
+        "arn:aws:s3:::commerce-tfstate-036706657723-ap-south-1/*"
+      ]
+    }
+  ]
+}
