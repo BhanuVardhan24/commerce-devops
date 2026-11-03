@@ -1,6 +1,7 @@
 import os
 
 from flask import Flask, jsonify
+from flask import Flask, jsonify, render_template
 
 
 PRODUCTS = [
@@ -21,6 +22,14 @@ PRODUCTS = [
 
 def create_app():
     app = Flask(__name__)
+
+    @app.get("/")
+    def storefront():
+        return render_template(
+            "index.html",
+            products=PRODUCTS,
+            version=os.getenv("APP_VERSION", "local"),
+        )
 
     @app.get("/healthz")
     def health():
