@@ -4,82 +4,87 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Commerce Store</title>
-
   <style>
-    body {
-      margin: 0;
-      background: #f4f7fb;
-      color: #183149;
-      font-family: system-ui, sans-serif;
-    }
-
-    main {
-      max-width: 960px;
-      margin: 64px auto;
-      padding: 0 24px;
-    }
-
-    .eyebrow {
-      color: #007f86;
-      font-weight: 700;
-    }
-
-    h1 {
-      font-size: clamp(32px, 6vw, 48px);
-      margin: 12px 0;
-    }
-
-    .products {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 24px;
-      margin-top: 32px;
-    }
-
-    .product {
-      background: white;
-      border: 1px solid #dce5ee;
-      border-radius: 16px;
-      padding: 24px;
-    }
-
-    .price {
-      font-size: 24px;
-      font-weight: 700;
-      color: #007f86;
-    }
-
-    footer {
-      margin-top: 40px;
-      color: #526579;
-      overflow-wrap: anywhere;
-    }
+    body{font-family:system-ui,sans-serif;background:#f4f7fb;color:#183149;margin:0}
+    main{max-width:960px;margin:48px auto;padding:24px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px}
+    article,section{background:white;border:1px solid #dce5ee;border-radius:16px;padding:24px;margin:20px 0}
+    button,select{padding:12px;border-radius:8px;border:1px solid #00858d;margin:5px}
+    button{background:#00858d;color:white;cursor:pointer}button:disabled{opacity:.5;cursor:wait}
+    pre{white-space:pre-wrap;overflow-wrap:anywhere}footer{overflow-wrap:anywhere;color:#526579}
   </style>
 </head>
-
-<body>
-  <main>
-    <p class="eyebrow">COMMERCE STORE</p>
-    <h1>Everyday essentials.</h1>
-    <p>Browse our collection. Cart and checkout are coming next.</p>
-
-    <section class="products" aria-label="Product catalog">
-      {% for product in products %}
-      <article class="product">
-        <h2>{{ product.name }}</h2>
-        <p class="price">
-          {{ product.currency }}
-          {{ "%.2f"|format(product.price_minor / 100) }}
-        </p>
-        <p>Product #{{ product.id }}</p>
-      </article>
-      {% endfor %}
-    </section>
-
-    <footer>
-      <p>Demo store using synthetic products.</p>
-      <p>Release: {{ version }}</p>
-    </footer>
-  </main>
-</body>
-</html>
+<body><main>
+  <p>COMMERCE STORE / SYNTHETIC DATA ONLY</p><h1>Everyday essentials.</h1>
+  <div class="grid">
+    {% for product in products %}
+    <article><h2>{{ product.name }}</h2>
+      <p>{{ product.currency }} {{ '%.2f'|format(product.price_minor / 100) }}</p>
+      <button type="button" data-product="{{ product.id }}">Add to cart</button>
+    </article>
+    {% endfor %}
+  </div>
+  <section><h2>Your cart</h2><pre id="cart">Loading cart...</pre>
+    <label>Mock payment outcome
+      <select id="mode"><option value="success">Success</option>
+        <option value="decline">Decline</option>
+        <option value="timeout_once">Lost response, then safe retry</option></select>
+    </label>
+    <button id="checkout">Place order</button><button id="clear">New cart</button>
+    <pre id="result" aria-live="polite">Ready.</pre>
+  </section>
+  <footer>Demo store. No real money. Release: {{ version }}</footer>
+</main>
+<script>
+const stored = localStorage.getItem('commerce-cart');
+let cartId = stored || crypto.randomUUID();
+localStorage.setItem('commerce-cart', cartId);
+let items = [], checkoutKey = null, locked = false;
+const cartView = document.getElementById('cart'), result = document.getElementById('result');
+async function api(path, options = {}) {
+  const response = await fetch(path, options);
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Request failed');
+  return data;
+}
+function json(method, body) {
+  return {method, headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)};
+}
+function showCart(){cartView.textContent = JSON.stringify(items, null, 2);}
+document.querySelectorAll('[data-product]').forEach(button => button.onclick = async () => {
+  if (locked) return;
+  try {
+    const product_id = Number(button.dataset.product);
+    const next = items.map(i => ({...i})), existing = next.find(i => i.product_id === product_id);
+    if (existing) existing.quantity++; else next.push({product_id, quantity:1});
+    items = (await api('/api/carts/' + cartId, json('PUT', {items:next}))).items;
+    checkoutKey = null; showCart();
+  } catch(e){result.textContent=e.message;}
+});
+document.getElementById('checkout').onclick = async () => {
+  if (locked) return;
+  locked = true;
+  const mode = document.getElementById('mode'); mode.disabled = true;
+  document.getElementById('checkout').disabled = true;
+  checkoutKey ||= crypto.randomUUID();
+  try {
+    const options = json('POST', {cart_id:cartId, mode:mode.value});
+    options.headers['Idempotency-Key'] = checkoutKey;
+    const order = await api('/api/orders', options);
+    for(let n=0;n<45;n++) {
+      const state = await api('/api/orders/' + order.order_id);
+      result.textContent = JSON.stringify(state, null, 2);
+      if(state.job_state === 'DONE' || state.job_state === 'DEAD') return;
+      await new Promise(resolve => setTimeout(resolve,1000));
+    }
+    result.textContent += '\nStill processing. Keep this order ID for investigation.';
+  } catch(e){result.textContent=e.message;}
+  finally{locked=false; document.getElementById('checkout').disabled=false;}
+};
+document.getElementById('clear').onclick = () => {
+  if(locked) return;
+  localStorage.removeItem('commerce-cart'); location.reload();
+};
+api('/api/carts/' + cartId).then(data => {items=data.items;showCart();})
+  .catch(e => {result.textContent=e.message;});
+</script></body></html>

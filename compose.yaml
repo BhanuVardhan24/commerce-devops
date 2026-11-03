@@ -1,87 +1,90 @@
 name: commerce-devops
 
+x-app: &app
+  build: .
+  image: commerce-catalog:${APP_VERSION:-dev}
+  init: true
+  environment: &environment
+    APP_VERSION: ${APP_VERSION:-compose-dev}
+    DB_HOST: postgres
+    DB_NAME: commerce
+    DB_USER: commerce
+    DB_PASSWORD: ${COMMERCE_DB_PASSWORD:?Set COMMERCE_DB_PASSWORD in .env}
+    REDIS_HOST: redis
+    WEBHOOK_SECRET: ${WEBHOOK_SECRET:?Set WEBHOOK_SECRET in .env}
+  mem_limit: 256m
+  cpus: 0.5
+  stop_grace_period: 30s
+
 services:
-  web:
-    build:
-      context: .
-
-    image: commerce-catalog:${APP_VERSION:-dev}
-
-    environment:
-      APP_VERSION: ${APP_VERSION:-compose-dev}
-
-    ports:
-      - "127.0.0.1:8000:8000"
-
-    init: true
-    mem_limit: 256m
-    cpus: 1.0
-
-    healthcheck:
-      test:
-        - CMD
-        - python
-        - -c
-        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=2).close()"
-      interval: 5s
-      timeout: 3s
-      retries: 5
-      start_period: 10s
-
-    stop_grace_period: 30s
-
   postgres:
     image: postgres:17.11-alpine
-
     environment:
       POSTGRES_DB: commerce
       POSTGRES_USER: commerce
       POSTGRES_PASSWORD: ${COMMERCE_DB_PASSWORD:?Set COMMERCE_DB_PASSWORD in .env}
-
     volumes:
       - postgres_data:/var/lib/postgresql/data
-
     mem_limit: 512m
-    cpus: 1.0
-
     healthcheck:
-      test:
-        - CMD-SHELL
-        - pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"
+      test: [CMD-SHELL, 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7.4.12-alpine
+    command: [redis-server, --save, "", --appendonly, "no", --maxmemory, 64mb, --maxmemory-policy, allkeys-lru]
+    mem_limit: 128m
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  migrate:
+    <<: *app
+    command: [python, -m, app.data]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  web:
+    <<: *app
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/readyz', timeout=2).close()"]
       interval: 5s
       timeout: 3s
       retries: 10
       start_period: 10s
 
-    stop_grace_period: 30s
-
-  redis:
-    image: redis:7.4.12-alpine
-
-    command:
-      - redis-server
-      - --save
-      - ""
-      - --appendonly
-      - "no"
-      - --maxmemory
-      - 64mb
-      - --maxmemory-policy
-      - allkeys-lru
-
-    mem_limit: 128m
-    cpus: 0.5
-
+  provider:
+    <<: *app
+    command: [gunicorn, --bind, "0.0.0.0:8000", --workers, "2", --access-logfile, "-", "app.provider:create_app()"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
     healthcheck:
-      test:
-        - CMD
-        - redis-cli
-        - ping
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=2).close()"]
       interval: 5s
       timeout: 3s
-      retries: 5
+      retries: 10
 
-    stop_grace_period: 10s
+  worker:
+    <<: *app
+    command: [python, -m, app.worker]
+    depends_on:
+      web:
+        condition: service_healthy
+      provider:
+        condition: service_healthy
 
 volumes:
   postgres_data:
