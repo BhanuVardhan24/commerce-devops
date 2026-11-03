@@ -50,3 +50,23 @@ Redis currently has persistence disabled and no named data volume.
 
 Local PostgreSQL storage is not an AWS RDS resource.
 No additional IAM roles or policies were created in this stage.
+
+## Terraform foundation
+
+| Resource | Name | Ownership |
+|---|---|---|
+| Customer-managed IAM policy | CommerceTerraformStateBootstrapPolicy | Manual bootstrap |
+| Policy attachment | CommerceDevMachineRole → CommerceTerraformStateBootstrapPolicy | Manual bootstrap |
+| S3 state bucket | commerce-tfstate-036706657723-ap-south-1 | Terraform: infra/bootstrap |
+| Bucket protections | Versioning, encryption, public-access block, TLS policy | Terraform: infra/bootstrap |
+| Bootstrap state | bootstrap/terraform.tfstate and object versions | Terraform backend |
+
+Policy ARN:
+arn:aws:iam::036706657723:policy/CommerceTerraformStateBootstrapPolicy
+
+No new IAM role or instance profile created.
+
+Destroy application infrastructure before removing this foundation.
+Migrate bootstrap state back to local before final bucket deletion.
+Remove bucket protection deliberately during reviewed final cleanup.
+Detach/delete the custom policy only after state cleanup finishes.

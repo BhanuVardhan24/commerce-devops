@@ -1,0 +1,52 @@
+---
+- name: Install the pinned Terraform CLI
+  hosts: workstation
+  become: true
+  vars:
+    terraform_version: "1.17.1"
+    terraform_archive: "terraform_{{ terraform_version }}_linux_amd64.zip"
+    terraform_release_url: "https://releases.hashicorp.com/terraform/{{ terraform_version }}"
+  tasks:
+    - name: Verify Ubuntu x86_64
+      ansible.builtin.assert:
+        that:
+          - ansible_facts['distribution'] == 'Ubuntu'
+          - ansible_facts['architecture'] == 'x86_64'
+
+    - name: Install extraction and certificate prerequisites
+      ansible.builtin.apt:
+        name: [unzip, ca-certificates]
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Create the tool download directory
+      ansible.builtin.file:
+        path: /var/tmp/commerce-tools
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Download Terraform and verify its published checksum
+      ansible.builtin.get_url:
+        url: "{{ terraform_release_url }}/{{ terraform_archive }}"
+        dest: "/var/tmp/commerce-tools/{{ terraform_archive }}"
+        checksum: "sha256:{{ terraform_release_url }}/terraform_{{ terraform_version }}_SHA256SUMS"
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Install the Terraform executable
+      ansible.builtin.unarchive:
+        src: "/var/tmp/commerce-tools/{{ terraform_archive }}"
+        dest: /usr/local/bin
+        remote_src: true
+        include: [terraform]
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Report the installed version
+      ansible.builtin.command: /usr/local/bin/terraform version
+      changed_when: false
