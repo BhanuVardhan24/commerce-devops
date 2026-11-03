@@ -22,6 +22,47 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
 
+  container-tests:
+    name: Container tests
+    needs: application-tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+
+      - name: Build application image
+        run: docker build -t commerce-catalog:ci .
+
+      - name: Run API tests inside the image
+        run: |
+          docker run --rm \
+            --mount type=bind,src="${{ github.workspace }}/tests",dst=/srv/tests,readonly \
+            commerce-catalog:ci \
+            python -m unittest discover -s tests -v
+
+      - name: Start application container
+        run: |
+          docker run -d \
+            --name commerce-catalog \
+            -p 127.0.0.1:8000:8000 \
+            -e APP_VERSION="${{ github.sha }}" \
+            commerce-catalog:ci
+
+      - name: Run HTTP smoke tests
+        run: python3 scripts/smoke_test.py
+
+      - name: Show container logs
+        if: always()
+        run: docker logs commerce-catalog || true
+
+      - name: Remove test container
+        if: always()
+        run: docker rm -f commerce-catalog || true
+
     steps:
       - name: Check out repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
