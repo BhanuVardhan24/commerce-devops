@@ -39,3 +39,14 @@ Region: ap-south-1.
 6. Confirm whether the development workstation should be retained.
 7. Account for retained disks, snapshots and Elastic IPs separately.
 8. Verify actual resource inventory after Terraform destroy.
+
+## Local Docker storage
+
+| Resource | Purpose | Cleanup |
+|---|---|---|
+| commerce-devops_postgres_data | Local PostgreSQL data | Retain between development sessions; remove only when lab data is no longer needed |
+
+Redis currently has persistence disabled and no named data volume.
+
+Local PostgreSQL storage is not an AWS RDS resource.
+No additional IAM roles or policies were created in this stage.
