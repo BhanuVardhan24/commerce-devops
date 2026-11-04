@@ -1,0 +1,34 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "NetworkProvisioningInMumbai",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:Describe*", "ec2:CreateVpc", "ec2:DeleteVpc", "ec2:ModifyVpcAttribute",
+        "ec2:CreateSubnet", "ec2:DeleteSubnet", "ec2:ModifySubnetAttribute",
+        "ec2:CreateInternetGateway", "ec2:DeleteInternetGateway", "ec2:AttachInternetGateway", "ec2:DetachInternetGateway",
+        "ec2:CreateRouteTable", "ec2:DeleteRouteTable", "ec2:AssociateRouteTable", "ec2:DisassociateRouteTable", "ec2:ReplaceRouteTableAssociation",
+        "ec2:CreateRoute", "ec2:DeleteRoute", "ec2:ReplaceRoute",
+        "ec2:AllocateAddress", "ec2:ReleaseAddress", "ec2:CreateNatGateway", "ec2:DeleteNatGateway",
+        "ec2:CreateVpcEndpoint", "ec2:ModifyVpcEndpoint", "ec2:DeleteVpcEndpoints",
+        "ec2:CreateTags", "ec2:DeleteTags"
+      ],
+      "Resource": "*",
+      "Condition": {"StringEquals": {"aws:RequestedRegion": "ap-south-1"}}
+    },
+    {
+      "Sid": "ManageOnlyCommerceRepository",
+      "Effect": "Allow",
+      "Action": [
+        "ecr:CreateRepository", "ecr:DeleteRepository", "ecr:DescribeRepositories",
+        "ecr:ListTagsForResource", "ecr:TagResource", "ecr:UntagResource",
+        "ecr:PutImageTagMutability", "ecr:PutImageScanningConfiguration",
+        "ecr:GetLifecyclePolicy", "ecr:PutLifecyclePolicy", "ecr:DeleteLifecyclePolicy",
+        "ecr:DescribeImages", "ecr:ListImages", "ecr:BatchDeleteImage"
+      ],
+      "Resource": "arn:aws:ecr:ap-south-1:036706657723:repository/commerce/catalog",
+      "Condition": {"StringEquals": {"aws:RequestedRegion": "ap-south-1"}}
+    }
+  ]
+}

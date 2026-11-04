@@ -70,3 +70,21 @@ Destroy application infrastructure before removing this foundation.
 Migrate bootstrap state back to local before final bucket deletion.
 Remove bucket protection deliberately during reviewed final cleanup.
 Detach/delete the custom policy only after state cleanup finishes.
+
+## Network and ECR
+
+- Custom policy: CommerceNetworkEcrProvisioningPolicy
+- Attachment: CommerceDevMachineRole → CommerceNetworkEcrProvisioningPolicy
+- VPC: commerce-dev-vpc
+- Six subnets, Internet Gateway, route tables and routes
+- NAT gateway: commerce-dev-nat
+- New Elastic IP: commerce-dev-nat-eip
+- S3 gateway endpoint: commerce-dev-s3-endpoint
+- ECR repository and lifecycle policy: commerce/catalog
+- Terraform state: commerce/dev/terraform.tfstate
+- Actual resource IDs: docs/evidence/network-outputs.json
+
+Terraform owns these infrastructure resources.
+The custom IAM policy and attachment are manually bootstrapped.
+Destroy dependent clusters/databases/load balancers before networking.
+Keep provisioning permissions until teardown finishes.
