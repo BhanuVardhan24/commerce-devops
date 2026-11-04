@@ -1,0 +1,24 @@
+---
+- name: Install kubectl for the EKS cluster
+  hosts: workstation
+  become: true
+  vars:
+    kubectl_version: "v1.35.10"
+    kubectl_download: "https://dl.k8s.io/release/{{ kubectl_version }}/bin/linux/amd64/kubectl"
+  tasks:
+    - name: Verify x86_64 architecture
+      ansible.builtin.assert:
+        that: ansible_facts['architecture'] == 'x86_64'
+    - name: Read the published kubectl checksum
+      ansible.builtin.uri:
+        url: "{{ kubectl_download }}.sha256"
+        return_content: true
+      register: kubectl_checksum
+    - name: Install checksum-verified kubectl
+      ansible.builtin.get_url:
+        url: "{{ kubectl_download }}"
+        dest: /usr/local/bin/kubectl
+        checksum: "sha256:{{ kubectl_checksum.content | trim }}"
+        owner: root
+        group: root
+        mode: "0755"
