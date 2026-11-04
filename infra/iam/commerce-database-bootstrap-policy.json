@@ -1,0 +1,20 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ReadDatabaseAdministratorForBootstrap",
+      "Effect": "Allow",
+      "Action": "secretsmanager:GetSecretValue",
+      "Resource": "PASTE_MASTER_SECRET_ARN"
+    },
+    {
+      "Sid": "InitializeApplicationCredentials",
+      "Effect": "Allow",
+      "Action": [
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:PutSecretValue"
+      ],
+      "Resource": "PASTE_APPLICATION_SECRET_ARN"
+    }
+  ]
+}

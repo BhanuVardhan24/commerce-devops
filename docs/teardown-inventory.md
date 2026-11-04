@@ -57,3 +57,34 @@ Operations:
 - ESO refreshes the Kubernetes Secret.
 - Applications consuming secrets as environment variables need a restart
   to use updated values.
+
+  ## RDS application access
+
+- PostgreSQL login: commerce_app
+- Database: commerce
+- Schema: commerce
+- Application tables created by commerce_app.
+- Application login has no superuser, role-management,
+  database-creation, replication, or bypass-RLS privileges.
+- Application login can create tables in its commerce schema.
+
+Secrets:
+- AWS secret: commerce/dev/database, Terraform-managed metadata.
+- Secret value initialized outside Terraform.
+- ExternalSecret: commerce/commerce-database
+- Generated Kubernetes Secret: commerce/commerce-database
+- Public RDS CA bundle: gitops/platform/external-secrets/rds-ca.pem
+
+Temporary provisioning:
+- Inline policy: CommerceDatabaseBootstrapPolicy
+- Role: CommerceDevMachineRole
+- Remove policy after successful bootstrap.
+- Temporary pod: commerce/commerce-db-bootstrap
+- Pod deleted after setup.
+
+Cleanup:
+- Removing the Kubernetes Secret does not remove the database login.
+- Destroying the project RDS instance removes its database objects.
+- Retained final snapshots also retain database data and roles.
+- If retaining RDS instead, review and remove project database objects
+  and login separately.

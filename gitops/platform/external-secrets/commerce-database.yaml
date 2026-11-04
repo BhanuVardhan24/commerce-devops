@@ -1,0 +1,19 @@
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: commerce-database
+  namespace: commerce
+spec:
+  refreshInterval: 1h
+
+  secretStoreRef:
+    name: commerce-aws
+    kind: SecretStore
+
+  target:
+    name: commerce-database
+    creationPolicy: Owner
+
+  dataFrom:
+    - extract:
+        key: commerce/dev/database
