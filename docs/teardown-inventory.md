@@ -32,3 +32,28 @@ Cleanup:
 
 - SonarQube and Amazon Inspector excluded from project scope.
 - Automated tests, Gitleaks, and Trivy remain required.
+
+## External Secrets Operator
+
+- Helm release: external-secrets
+- Namespace: external-secrets
+- Service account: external-secrets
+- Uses existing CommerceExternalSecretsRole through EKS Pod Identity.
+- No new IAM roles or policies created in this step.
+
+Application resources:
+- Namespace: commerce
+- SecretStore: commerce/commerce-aws
+- ExternalSecret: commerce/commerce-webhook
+- Generated Secret: commerce/commerce-webhook
+
+Cleanup:
+- Remove application workloads and ExternalSecrets first.
+- Uninstall the external-secrets Helm release before removing its IAM identity.
+- Remove remaining stores, namespaces, and unused ESO CRDs after checking dependencies.
+- AWS Secrets Manager secrets remain managed by Terraform.
+
+Operations:
+- ESO refreshes the Kubernetes Secret.
+- Applications consuming secrets as environment variables need a restart
+  to use updated values.

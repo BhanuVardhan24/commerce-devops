@@ -1,0 +1,48 @@
+---
+- name: Install Helm on the dev machine
+  hosts: localhost
+  connection: local
+  become: true
+  gather_facts: false
+
+  vars:
+    helm_version: "{{ lookup('file', playbook_dir + '/helm-version.txt') | trim }}"
+    helm_archive: "helm-{{ helm_version }}-linux-amd64.tar.gz"
+    helm_download: "https://get.helm.sh/{{ helm_archive }}"
+
+  tasks:
+    - name: Create installation workspace
+      ansible.builtin.tempfile:
+        state: directory
+        prefix: commerce-helm-
+      register: helm_workspace
+
+    - name: Install verified Helm binary
+      block:
+        - name: Download archive and verify its published checksum
+          ansible.builtin.get_url:
+            url: "{{ helm_download }}"
+            dest: "{{ helm_workspace.path }}/{{ helm_archive }}"
+            checksum: "sha256:{{ helm_download }}.sha256sum"
+            mode: "0644"
+
+        - name: Extract archive
+          ansible.builtin.unarchive:
+            src: "{{ helm_workspace.path }}/{{ helm_archive }}"
+            dest: "{{ helm_workspace.path }}"
+            remote_src: true
+
+        - name: Install executable
+          ansible.builtin.copy:
+            src: "{{ helm_workspace.path }}/linux-amd64/helm"
+            dest: /usr/local/bin/helm
+            remote_src: true
+            owner: root
+            group: root
+            mode: "0755"
+
+      always:
+        - name: Remove installation workspace
+          ansible.builtin.file:
+            path: "{{ helm_workspace.path }}"
+            state: absent
