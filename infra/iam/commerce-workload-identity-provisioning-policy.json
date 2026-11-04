@@ -1,0 +1,88 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ManageExternalSecretsRole",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateRole",
+        "iam:GetRole",
+        "iam:UpdateRole",
+        "iam:UpdateAssumeRolePolicy",
+        "iam:DeleteRole",
+        "iam:TagRole",
+        "iam:UntagRole",
+        "iam:ListRoleTags",
+        "iam:ListRolePolicies",
+        "iam:ListAttachedRolePolicies",
+        "iam:GetRolePolicy",
+        "iam:PutRolePolicy",
+        "iam:DeleteRolePolicy"
+      ],
+      "Resource": "arn:aws:iam::036706657723:role/CommerceExternalSecretsRole"
+    },
+    {
+      "Sid": "PassExternalSecretsRole",
+      "Effect": "Allow",
+      "Action": "iam:PassRole",
+      "Resource": "arn:aws:iam::036706657723:role/CommerceExternalSecretsRole",
+      "Condition": {
+        "StringEquals": {
+          "iam:PassedToService": "pods.eks.amazonaws.com"
+        }
+      }
+    },
+    {
+      "Sid": "ManageClusterPodIdentity",
+      "Effect": "Allow",
+      "Action": [
+        "eks:CreatePodIdentityAssociation",
+        "eks:ListPodIdentityAssociations"
+      ],
+      "Resource": "arn:aws:eks:ap-south-1:036706657723:cluster/commerce-dev"
+    },
+    {
+      "Sid": "ManagePodIdentityAssociations",
+      "Effect": "Allow",
+      "Action": [
+        "eks:DescribePodIdentityAssociation",
+        "eks:UpdatePodIdentityAssociation",
+        "eks:DeletePodIdentityAssociation",
+        "eks:TagResource",
+        "eks:UntagResource",
+        "eks:ListTagsForResource"
+      ],
+      "Resource": "arn:aws:eks:ap-south-1:036706657723:podidentityassociation/commerce-dev/*"
+    },
+    {
+      "Sid": "CreateIdentityAgent",
+      "Effect": "Allow",
+      "Action": "eks:CreateAddon",
+      "Resource": "arn:aws:eks:ap-south-1:036706657723:cluster/commerce-dev"
+    },
+    {
+      "Sid": "ManageIdentityAgent",
+      "Effect": "Allow",
+      "Action": [
+        "eks:DescribeAddon",
+        "eks:UpdateAddon",
+        "eks:DeleteAddon",
+        "eks:TagResource",
+        "eks:UntagResource",
+        "eks:ListTagsForResource"
+      ],
+      "Resource": "arn:aws:eks:ap-south-1:036706657723:addon/commerce-dev/eks-pod-identity-agent/*"
+    },
+    {
+      "Sid": "DiscoverCompatibleAgent",
+      "Effect": "Allow",
+      "Action": "eks:DescribeAddonVersions",
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-south-1"
+        }
+      }
+    }
+  ]
+}
