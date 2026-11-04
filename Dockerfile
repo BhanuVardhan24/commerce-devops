@@ -8,6 +8,7 @@ WORKDIR /srv
 COPY requirements.txt ./
 
 RUN python -m pip install --no-cache-dir -r requirements.txt \
+    && python -m pip uninstall -y pip \
     && groupadd --gid 10001 appuser \
     && useradd --uid 10001 --gid appuser --no-create-home appuser
 
