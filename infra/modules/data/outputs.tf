@@ -1,0 +1,11 @@
+output "database_address" { value = aws_db_instance.main.address }
+output "database_port" { value = aws_db_instance.main.port }
+output "database_engine_version" { value = aws_db_instance.main.engine_version_actual }
+output "database_security_group_id" { value = aws_security_group.database.id }
+output "database_master_secret_arn" { value = aws_db_instance.main.master_user_secret[0].secret_arn }
+output "application_database_secret_arn" { value = aws_secretsmanager_secret.application_database.arn }
+output "webhook_secret_arn" { value = aws_secretsmanager_secret.webhook.arn }
+output "payments_queue_url" { value = aws_sqs_queue.payments.url }
+output "payments_queue_arn" { value = aws_sqs_queue.payments.arn }
+output "payments_dlq_url" { value = aws_sqs_queue.dead_letter.url }
+output "payments_dlq_arn" { value = aws_sqs_queue.dead_letter.arn }
