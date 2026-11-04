@@ -19,7 +19,11 @@ permissions:
 
 jobs:
   terraform-validation:
-    name: Terraform fmt and validate
+    name: Terraform validation (${{ matrix.root }})
+    strategy:
+      fail-fast: false
+      matrix:
+        root: [infra/bootstrap, infra/environments/dev]
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     env:
@@ -48,6 +52,6 @@ jobs:
       - name: Check formatting
         run: terraform fmt -check -recursive infra
       - name: Initialize providers without accessing remote state
-        run: terraform -chdir=infra/bootstrap init -backend=false -input=false -lockfile=readonly
+        run: terraform -chdir=${{ matrix.root }} init -backend=false -input=false -lockfile=readonly
       - name: Validate configuration
-        run: terraform -chdir=infra/bootstrap validate
+        run: terraform -chdir=${{ matrix.root }} validate
