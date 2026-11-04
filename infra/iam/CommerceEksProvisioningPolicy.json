@@ -1,0 +1,209 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ManageCommerceCluster",
+      "Effect": "Allow",
+      "Action": [
+        "eks:CreateCluster",
+        "eks:DeleteCluster",
+        "eks:DescribeCluster",
+        "eks:UpdateClusterConfig",
+        "eks:UpdateClusterVersion",
+        "eks:CreateNodegroup",
+        "eks:DeleteNodegroup",
+        "eks:DescribeNodegroup",
+        "eks:UpdateNodegroupConfig",
+        "eks:UpdateNodegroupVersion",
+        "eks:CreateAddon",
+        "eks:DeleteAddon",
+        "eks:DescribeAddon",
+        "eks:UpdateAddon",
+        "eks:CreateAccessEntry",
+        "eks:DeleteAccessEntry",
+        "eks:DescribeAccessEntry",
+        "eks:UpdateAccessEntry",
+        "eks:AssociateAccessPolicy",
+        "eks:DisassociateAccessPolicy",
+        "eks:ListAssociatedAccessPolicies",
+        "eks:ListAccessEntries",
+        "eks:ListAddons",
+        "eks:ListNodegroups",
+        "eks:DescribeUpdate",
+        "eks:ListUpdates",
+        "eks:TagResource",
+        "eks:UntagResource",
+        "eks:ListTagsForResource"
+      ],
+      "Resource": [
+        "arn:aws:eks:ap-south-1:036706657723:cluster/commerce-dev",
+        "arn:aws:eks:ap-south-1:036706657723:nodegroup/commerce-dev/*",
+        "arn:aws:eks:ap-south-1:036706657723:addon/commerce-dev/*",
+        "arn:aws:eks:ap-south-1:036706657723:access-entry/commerce-dev/*"
+      ]
+    },
+    {
+      "Sid": "ReadEksCompatibility",
+      "Effect": "Allow",
+      "Action": [
+        "eks:DescribeAddonVersions",
+        "eks:DescribeClusterVersions",
+        "eks:ListClusters",
+        "eks:ListAccessPolicies"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-south-1"
+        }
+      }
+    },
+    {
+      "Sid": "ManageOnlyProjectEksRoles",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateRole",
+        "iam:DeleteRole",
+        "iam:GetRole",
+        "iam:UpdateAssumeRolePolicy",
+        "iam:TagRole",
+        "iam:UntagRole",
+        "iam:ListRolePolicies",
+        "iam:ListAttachedRolePolicies",
+        "iam:ListInstanceProfilesForRole",
+        "iam:ListRoleTags",
+        "iam:GetRolePolicy"
+      ],
+      "Resource": [
+        "arn:aws:iam::036706657723:role/CommerceEksClusterRole",
+        "arn:aws:iam::036706657723:role/CommerceEksNodeRole"
+      ]
+    },
+    {
+      "Sid": "AttachOnlyRequiredAwsManagedPolicies",
+      "Effect": "Allow",
+      "Action": [
+        "iam:AttachRolePolicy",
+        "iam:DetachRolePolicy"
+      ],
+      "Resource": [
+        "arn:aws:iam::036706657723:role/CommerceEksClusterRole",
+        "arn:aws:iam::036706657723:role/CommerceEksNodeRole"
+      ],
+      "Condition": {
+        "ArnEquals": {
+          "iam:PolicyARN": [
+            "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy",
+            "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",
+            "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPullOnly",
+            "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "PassOnlyProjectEksRoles",
+      "Effect": "Allow",
+      "Action": "iam:PassRole",
+      "Resource": [
+        "arn:aws:iam::036706657723:role/CommerceEksClusterRole",
+        "arn:aws:iam::036706657723:role/CommerceEksNodeRole"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "iam:PassedToService": [
+            "eks.amazonaws.com",
+            "ec2.amazonaws.com"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "CreateRequiredServiceLinkedRolesIfAbsent",
+      "Effect": "Allow",
+      "Action": "iam:CreateServiceLinkedRole",
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "iam:AWSServiceName": [
+            "eks.amazonaws.com",
+            "eks-nodegroup.amazonaws.com",
+            "autoscaling.amazonaws.com"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "ManageNodeLaunchTemplate",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:CreateLaunchTemplate",
+        "ec2:DeleteLaunchTemplate",
+        "ec2:CreateLaunchTemplateVersion",
+        "ec2:DeleteLaunchTemplateVersions",
+        "ec2:ModifyLaunchTemplate"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-south-1"
+        }
+      }
+    },
+    {
+      "Sid": "ManageClusterLogGroup",
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:DeleteLogGroup",
+        "logs:PutRetentionPolicy",
+        "logs:DeleteRetentionPolicy",
+        "logs:TagResource",
+        "logs:UntagResource",
+        "logs:ListTagsForResource",
+        "logs:TagLogGroup",
+        "logs:UntagLogGroup",
+        "logs:ListTagsLogGroup"
+      ],
+      "Resource": [
+        "arn:aws:logs:ap-south-1:036706657723:log-group:/aws/eks/commerce-dev/cluster",
+        "arn:aws:logs:ap-south-1:036706657723:log-group:/aws/eks/commerce-dev/cluster:*"
+      ]
+    },
+    {
+      "Sid": "ReadLogGroupMetadata",
+      "Effect": "Allow",
+      "Action": "logs:DescribeLogGroups",
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-south-1"
+        }
+      }
+    },
+{
+  "Sid": "ReadRequiredServiceLinkedRoles",
+  "Effect": "Allow",
+  "Action": "iam:GetRole",
+  "Resource": [
+    "arn:aws:iam::036706657723:role/aws-service-role/eks.amazonaws.com/AWSServiceRoleForAmazonEKS",
+    "arn:aws:iam::036706657723:role/aws-service-role/eks-nodegroup.amazonaws.com/AWSServiceRoleForAmazonEKSNodegroup",
+    "arn:aws:iam::036706657723:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling"
+  ]
+},
+    {
+      "Sid": "ValidateManagedNodeLaunchPermissions",
+      "Effect": "Allow",
+      "Action": "ec2:RunInstances",
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-south-1"
+        },
+        "StringEqualsIfExists": {
+          "ec2:InstanceType": "t3.medium"
+        }
+      }
+    }
+  ]
+}
