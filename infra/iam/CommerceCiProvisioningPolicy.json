@@ -1,0 +1,30 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ReadGithubIdentityProvider",
+      "Effect": "Allow",
+      "Action": "iam:GetOpenIDConnectProvider",
+      "Resource": "arn:aws:iam::036706657723:oidc-provider/token.actions.githubusercontent.com"
+    },
+    {
+      "Sid": "ManageOnlyGithubPublisherRole",
+      "Effect": "Allow",
+      "Action": ["iam:CreateRole", "iam:DeleteRole", "iam:GetRole", "iam:UpdateAssumeRolePolicy", "iam:TagRole", "iam:UntagRole", "iam:ListRoleTags", "iam:ListRolePolicies", "iam:GetRolePolicy", "iam:ListAttachedRolePolicies", "iam:ListInstanceProfilesForRole"],
+      "Resource": "arn:aws:iam::036706657723:role/CommerceGithubEcrPushRole"
+    },
+    {
+      "Sid": "ManageOnlyPublisherPolicy",
+      "Effect": "Allow",
+      "Action": ["iam:CreatePolicy", "iam:DeletePolicy", "iam:GetPolicy", "iam:GetPolicyVersion", "iam:CreatePolicyVersion", "iam:DeletePolicyVersion", "iam:SetDefaultPolicyVersion", "iam:ListPolicyVersions", "iam:TagPolicy", "iam:UntagPolicy", "iam:ListPolicyTags"],
+      "Resource": "arn:aws:iam::036706657723:policy/CommerceGithubEcrPushPolicy"
+    },
+    {
+      "Sid": "AttachOnlyPublisherPolicyToPublisherRole",
+      "Effect": "Allow",
+      "Action": ["iam:AttachRolePolicy", "iam:DetachRolePolicy"],
+      "Resource": "arn:aws:iam::036706657723:role/CommerceGithubEcrPushRole",
+      "Condition": {"ArnEquals": {"iam:PolicyARN": "arn:aws:iam::036706657723:policy/CommerceGithubEcrPushPolicy"}}
+    }
+  ]
+}
