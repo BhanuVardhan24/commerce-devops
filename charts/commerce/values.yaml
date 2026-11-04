@@ -1,0 +1,40 @@
+image:
+  repository: 036706657723.dkr.ecr.ap-south-1.amazonaws.com/commerce/catalog
+  digest: sha256:2c7a1c5ea23857a9e69c4be235fd21242466826fb92e92df645d4506c6df33e3
+
+redis:
+  image: redis:7.4.12-alpine
+
+components:
+  web:
+    replicas: 1
+    command:
+      - gunicorn
+      - --bind
+      - "0.0.0.0:8000"
+      - --workers
+      - "2"
+      - --access-logfile
+      - "-"
+      - "app.main:create_app()"
+    readinessPath: /readyz
+
+  provider:
+    replicas: 1
+    command:
+      - gunicorn
+      - --bind
+      - "0.0.0.0:8000"
+      - --workers
+      - "2"
+      - --access-logfile
+      - "-"
+      - "app.provider:create_app()"
+    readinessPath: /healthz
+
+  worker:
+    replicas: 1
+    command:
+      - python
+      - -m
+      - app.worker

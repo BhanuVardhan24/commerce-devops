@@ -1,0 +1,125 @@
+{{- range $name, $component := .Values.components }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: commerce-{{ $name }}
+spec:
+  replicas: {{ $component.replicas }}
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app: commerce-{{ $name }}
+      release: {{ $.Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: commerce-{{ $name }}
+        release: {{ $.Release.Name }}
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+
+      containers:
+        - name: {{ $name }}
+          image: "{{ $.Values.image.repository }}@{{ $.Values.image.digest }}"
+          imagePullPolicy: IfNotPresent
+          command:
+{{ toYaml $component.command | indent 12 }}
+
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+
+          envFrom:
+            - secretRef:
+                name: commerce-database
+{{ if ne $name "worker" }}
+            - secretRef:
+                name: commerce-webhook
+{{ end }}
+
+          env:
+            - name: APP_VERSION
+              value: {{ $.Values.image.digest | quote }}
+            - name: REDIS_HOST
+              value: commerce-redis
+            - name: PROVIDER_URL
+              value: http://commerce-provider:8000/payments
+            - name: CALLBACK_URL
+              value: http://commerce-web:8000/api/payment-webhook
+            - name: PGSSLMODE
+              value: verify-full
+            - name: PGSSLROOTCERT
+              value: /etc/rds-ca/rds-ca.pem
+
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              memory: 256Mi
+
+          volumeMounts:
+            - name: rds-ca
+              mountPath: /etc/rds-ca
+              readOnly: true
+
+{{ if ne $name "worker" }}
+          ports:
+            - name: http
+              containerPort: 8000
+
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 5
+            failureThreshold: 30
+
+          readinessProbe:
+            httpGet:
+              path: {{ $component.readinessPath }}
+              port: http
+            periodSeconds: 5
+            timeoutSeconds: 4
+
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 3
+{{ end }}
+
+      volumes:
+        - name: rds-ca
+          configMap:
+            name: commerce-rds-ca
+
+{{ if ne $name "worker" }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: commerce-{{ $name }}
+spec:
+  type: ClusterIP
+  selector:
+    app: commerce-{{ $name }}
+    release: {{ $.Release.Name }}
+  ports:
+    - name: http
+      port: 8000
+      targetPort: http
+{{ end }}
+{{- end }}
