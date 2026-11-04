@@ -1,8 +1,4 @@
-# Pin the observed exact subject after the first successful main-branch run.
-# Wildcards below occupy immutable numeric IDs only; owner/repo/branch names are exact.
+# Exact subject verified from a successful main-branch OIDC run.
 locals {
-  github_main_subjects = [
-    "repo:BhanuVardhan24/commerce-devops:ref:refs/heads/main",
-    "repo:BhanuVardhan24@*/commerce-devops@*:ref:refs/heads/main"
-  ]
+  github_main_subjects = ["repo:BhanuVardhan24@217842749/commerce-devops@1443930697:ref:refs/heads/main"]
 }

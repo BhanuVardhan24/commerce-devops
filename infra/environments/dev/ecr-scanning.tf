@@ -1,0 +1,3 @@
+resource "aws_ecr_registry_scanning_configuration" "commerce" {
+  scan_type = "BASIC"
+}
