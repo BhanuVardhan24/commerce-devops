@@ -192,3 +192,19 @@ inspect scheduled deletion rather than force-deleting blindly. Remove data servi
 EKS/node SG/network and before the remote state. Remove the custom policy attachment/policy
 versions/policy only after its resources are gone. RDS, storage, snapshots, logs and Secrets
 Manager incur charges; stopping local Compose has no effect on cloud resources.
+
+## GitHub image publishing
+
+- Manual policy: CommerceCiProvisioningPolicy
+- Attachment: CommerceDevMachineRole → CommerceCiProvisioningPolicy
+- GitHub OIDC provider: token.actions.githubusercontent.com
+  Record whether project-created or shared.
+- Terraform role: CommerceGithubEcrPushRole
+- Terraform policy: CommerceGithubEcrPushPolicy
+- Terraform attachment: publisher policy → publisher role
+- Pipeline-created ECR images: commerce/catalog
+- GitHub CI evidence artifacts: ci-reports-*, seven-day retention
+
+Disable publishing before final image cleanup.
+Remove publisher resources through Terraform.
+Retain a shared OIDC provider when other projects use it.

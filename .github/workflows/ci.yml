@@ -36,33 +36,79 @@ jobs:
     name: Container tests
     needs: application-tests
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      id-token: write
     env:
       APP_VERSION: ${{ github.sha }}
       COMMERCE_DB_PASSWORD: ci_only_not_a_real_secret
       WEBHOOK_SECRET: ci_only_webhook_fixture
+      AWS_REGION: ap-south-1
     steps:
-      - name: Check out repository
+      - name: Check out complete history for secret scanning
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           persist-credentials: false
-      - name: Validate Compose configuration
+          fetch-depth: 0
+      - name: Prepare reports
+        run: mkdir -p reports
+      - name: Install pinned security scanners
+        run: bash scripts/install_ci_scanners.sh
+      - name: Block committed secrets
+        run: gitleaks git --redact --report-format json --report-path reports/gitleaks.json
+      - name: Validate Compose
         run: docker compose config --quiet
-      - name: Build and start the full application
-        run: docker compose up --build --wait --wait-timeout 120
+      - name: Build the application image once
+        run: docker build --pull -t "commerce-catalog:$APP_VERSION" .
+      - name: Start the complete application without rebuilding
+        run: docker compose up --no-build --wait --wait-timeout 120
       - name: Test packaged application
         run: |
           docker compose run --rm --no-deps \
             --volume "${{ github.workspace }}/tests:/srv/tests:ro" \
-            web python -m unittest discover -s tests -v
+            web python -m unittest discover -s tests -v 2>&1 | tee reports/container-tests.log
       - name: Check storefront and catalog
-        run: python3 scripts/smoke_test.py
-      - name: Verify checkout, decline, duplicates and retry
-        run: python3 scripts/checkout_test.py
-      - name: Verify mock payment and callback records
+        run: python3 scripts/smoke_test.py | tee reports/smoke-tests.log
+      - name: Check checkout retries and duplicate protection
+        run: python3 scripts/checkout_test.py | tee reports/checkout-tests.log
+      - name: Check unique payment and callback records
         run: |
           docker compose exec -T postgres psql -U commerce -d commerce -v ON_ERROR_STOP=1 -c \
             "DO \$\$ BEGIN IF (SELECT count(*) FROM mock_payments) <> 3 OR (SELECT count(*) FROM webhook_events) <> 3 THEN RAISE EXCEPTION 'Expected three unique payments and callbacks'; END IF; END \$\$;"
+      - name: Save complete image vulnerability report
+        run: |
+          trivy image --scanners vuln --format json \
+            --output reports/trivy.json "commerce-catalog:$APP_VERSION"
+          gitleaks version > reports/scanner-versions.txt
+          trivy --version >> reports/scanner-versions.txt
+      - name: Block fixable high and critical vulnerabilities
+        run: |
+          trivy image --scanners vuln --severity HIGH,CRITICAL \
+            --ignore-unfixed --exit-code 1 "commerce-catalog:$APP_VERSION"
+      - name: Record main-branch OIDC subject without exposing token
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: python3 scripts/capture_oidc_subject.py
+      - name: Obtain temporary AWS credentials
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd
+        with:
+          role-to-assume: arn:aws:iam::036706657723:role/CommerceGithubEcrPushRole
+          aws-region: ap-south-1
+          role-duration-seconds: 900
+          role-session-name: commerce-ci-${{ github.run_id }}
+          allowed-account-ids: "036706657723"
+      - name: Publish the tested image and record its digest
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: bash scripts/publish_ecr.sh
+      - name: Upload sanitized CI evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ci-reports-${{ github.run_id }}-${{ github.run_attempt }}
+          path: reports/
+          retention-days: 7
+          if-no-files-found: warn
       - name: Show service status and logs
         if: always()
         run: |
@@ -71,3 +117,6 @@ jobs:
       - name: Remove disposable test environment
         if: always()
         run: docker compose down --volumes --remove-orphans
+      - name: Remove registry login
+        if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: docker logout 036706657723.dkr.ecr.ap-south-1.amazonaws.com
