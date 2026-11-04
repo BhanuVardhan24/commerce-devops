@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: commerce-rds-ca
+data:
+  rds-ca.pem: |
+{{ required "The RDS CA bundle is missing" (.Files.Get "files/rds-ca.pem") | indent 4 }}

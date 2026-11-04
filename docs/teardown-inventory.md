@@ -88,3 +88,25 @@ Cleanup:
 - Retained final snapshots also retain database data and roles.
 - If retaining RDS instead, review and remove project database objects
   and login separately.
+
+  ## Initial application Helm deployment
+
+- Release: commerce
+- Namespace: commerce
+- Deployments: commerce-web, commerce-provider, commerce-worker,
+  commerce-redis
+- ClusterIP services: commerce-web, commerce-provider, commerce-redis
+- ConfigMap: commerce-rds-ca
+- Uses existing ESO-managed database and webhook Secrets.
+- No new IAM roles, policies, or AWS load balancers.
+
+Current limitations:
+- Payment worker still uses PostgreSQL polling; SQS integration pending.
+- Redis carts are disposable.
+- Public ALB access and GitOps adoption pending.
+- Initial deployment uses existing database tables.
+- Blue/green delivery and automated migrations pending.
+
+Cleanup:
+- helm uninstall commerce -n commerce
+- Helm uninstall does not delete RDS data or ESO-managed Secrets.
