@@ -1,0 +1,160 @@
+{
+  "application_database_secret_arn": {
+    "sensitive": false,
+    "type": "string",
+    "value": "arn:aws:secretsmanager:ap-south-1:036706657723:secret:commerce/dev/database-z1JGP2"
+  },
+  "data_subnet_ids": {
+    "sensitive": false,
+    "type": [
+      "tuple",
+      [
+        "string",
+        "string"
+      ]
+    ],
+    "value": [
+      "subnet-05dac6af6fce2e616",
+      "subnet-0f3d229fb80727a7a"
+    ]
+  },
+  "database_address": {
+    "sensitive": false,
+    "type": "string",
+    "value": "commerce-dev-postgres.ctk280gigucu.ap-south-1.rds.amazonaws.com"
+  },
+  "database_engine_version": {
+    "sensitive": false,
+    "type": "string",
+    "value": "17.9"
+  },
+  "database_master_secret_arn": {
+    "sensitive": false,
+    "type": "string",
+    "value": "arn:aws:secretsmanager:ap-south-1:036706657723:secret:rds!db-3512b11f-2d6b-4acf-9237-6b5242108277-9j8rxv"
+  },
+  "database_port": {
+    "sensitive": false,
+    "type": "number",
+    "value": 5432
+  },
+  "database_security_group_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "sg-0e280cbfa586bea02"
+  },
+  "ecr_repository_url": {
+    "sensitive": false,
+    "type": "string",
+    "value": "036706657723.dkr.ecr.ap-south-1.amazonaws.com/commerce/catalog"
+  },
+  "eks_addon_versions": {
+    "sensitive": false,
+    "type": [
+      "object",
+      {
+        "coredns": "string",
+        "kube-proxy": "string",
+        "vpc-cni": "string"
+      }
+    ],
+    "value": {
+      "coredns": "v1.14.7-eksbuild.22",
+      "kube-proxy": "v1.35.3-eksbuild.62",
+      "vpc-cni": "v1.23.2-eksbuild.8"
+    }
+  },
+  "eks_cluster_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "commerce-dev"
+  },
+  "eks_cluster_role_arn": {
+    "sensitive": false,
+    "type": "string",
+    "value": "arn:aws:iam::036706657723:role/CommerceEksClusterRole"
+  },
+  "eks_cluster_security_group_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "sg-06e460079b1bfafac"
+  },
+  "eks_endpoint": {
+    "sensitive": false,
+    "type": "string",
+    "value": "https://9159CE5B3C9E6A7A4A2DC13189604CBF.gr7.ap-south-1.eks.amazonaws.com"
+  },
+  "eks_node_role_arn": {
+    "sensitive": false,
+    "type": "string",
+    "value": "arn:aws:iam::036706657723:role/CommerceEksNodeRole"
+  },
+  "nat_gateway_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "nat-0fa5ee82c5a7654b3"
+  },
+  "nat_public_ip": {
+    "sensitive": false,
+    "type": "string",
+    "value": "13.234.84.196"
+  },
+  "payments_dlq_arn": {
+    "sensitive": false,
+    "type": "string",
+    "value": "arn:aws:sqs:ap-south-1:036706657723:commerce-dev-payments-dlq"
+  },
+  "payments_dlq_url": {
+    "sensitive": false,
+    "type": "string",
+    "value": "https://sqs.ap-south-1.amazonaws.com/036706657723/commerce-dev-payments-dlq"
+  },
+  "payments_queue_arn": {
+    "sensitive": false,
+    "type": "string",
+    "value": "arn:aws:sqs:ap-south-1:036706657723:commerce-dev-payments"
+  },
+  "payments_queue_url": {
+    "sensitive": false,
+    "type": "string",
+    "value": "https://sqs.ap-south-1.amazonaws.com/036706657723/commerce-dev-payments"
+  },
+  "private_subnet_ids": {
+    "sensitive": false,
+    "type": [
+      "tuple",
+      [
+        "string",
+        "string"
+      ]
+    ],
+    "value": [
+      "subnet-080225708caa94676",
+      "subnet-0bec9164f5cd00395"
+    ]
+  },
+  "public_subnet_ids": {
+    "sensitive": false,
+    "type": [
+      "tuple",
+      [
+        "string",
+        "string"
+      ]
+    ],
+    "value": [
+      "subnet-0daabe5b8be33f38c",
+      "subnet-08eb1f8895cf20a08"
+    ]
+  },
+  "vpc_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "vpc-0a1302f9a61ca4cbd"
+  },
+  "webhook_secret_arn": {
+    "sensitive": false,
+    "type": "string",
+    "value": "arn:aws:secretsmanager:ap-south-1:036706657723:secret:commerce/dev/webhook-HXn361"
+  }
+}

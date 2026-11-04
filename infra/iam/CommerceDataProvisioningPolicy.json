@@ -1,0 +1,85 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ReadRegionalRdsMetadata",
+      "Effect": "Allow",
+      "Action": "rds:Describe*",
+      "Resource": "*",
+      "Condition": {"StringEquals": {"aws:RequestedRegion": "ap-south-1"}}
+    },
+    {
+      "Sid": "ManageProjectDatabase",
+      "Effect": "Allow",
+      "Action": [
+        "rds:CreateDBInstance", "rds:ModifyDBInstance", "rds:DeleteDBInstance",
+        "rds:CreateDBSubnetGroup", "rds:ModifyDBSubnetGroup", "rds:DeleteDBSubnetGroup",
+        "rds:CreateDBParameterGroup", "rds:ModifyDBParameterGroup", "rds:ResetDBParameterGroup", "rds:DeleteDBParameterGroup",
+        "rds:CreateDBSnapshot", "rds:DeleteDBSnapshot", "rds:AddTagsToResource", "rds:RemoveTagsFromResource", "rds:ListTagsForResource"
+      ],
+      "Resource": [
+        "arn:aws:rds:ap-south-1:036706657723:db:commerce-dev-postgres",
+        "arn:aws:rds:ap-south-1:036706657723:subgrp:commerce-dev-db",
+        "arn:aws:rds:ap-south-1:036706657723:pg:commerce-dev-postgres17",
+        "arn:aws:rds:ap-south-1:036706657723:snapshot:commerce-dev-postgres-*"
+      ]
+    },
+    {
+      "Sid": "ManageDatabaseNetworkRules",
+      "Effect": "Allow",
+      "Action": ["ec2:CreateSecurityGroup", "ec2:DeleteSecurityGroup", "ec2:AuthorizeSecurityGroupIngress", "ec2:RevokeSecurityGroupIngress", "ec2:AuthorizeSecurityGroupEgress", "ec2:RevokeSecurityGroupEgress", "ec2:ModifySecurityGroupRules"],
+      "Resource": "*",
+      "Condition": {"StringEquals": {"aws:RequestedRegion": "ap-south-1"}}
+    },
+    {
+      "Sid": "ManageProjectQueues",
+      "Effect": "Allow",
+      "Action": ["sqs:CreateQueue", "sqs:DeleteQueue", "sqs:GetQueueUrl", "sqs:GetQueueAttributes", "sqs:SetQueueAttributes", "sqs:TagQueue", "sqs:UntagQueue", "sqs:ListQueueTags", "sqs:SendMessage", "sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:ChangeMessageVisibility"],
+      "Resource": ["arn:aws:sqs:ap-south-1:036706657723:commerce-dev-payments", "arn:aws:sqs:ap-south-1:036706657723:commerce-dev-payments-dlq"]
+    },
+    {
+      "Sid": "ManageProjectSecretContainersAndValues",
+      "Effect": "Allow",
+      "Action": ["secretsmanager:CreateSecret", "secretsmanager:DescribeSecret", "secretsmanager:UpdateSecret", "secretsmanager:DeleteSecret", "secretsmanager:RestoreSecret", "secretsmanager:TagResource", "secretsmanager:UntagResource", "secretsmanager:GetResourcePolicy", "secretsmanager:PutSecretValue", "secretsmanager:GetSecretValue", "secretsmanager:ListSecretVersionIds"],
+      "Resource": ["arn:aws:secretsmanager:ap-south-1:036706657723:secret:commerce/dev/database-*", "arn:aws:secretsmanager:ap-south-1:036706657723:secret:commerce/dev/webhook-*"]
+    },
+    {
+      "Sid": "AllowRdsManagedMasterSecretCreation",
+      "Effect": "Allow",
+      "Action": ["secretsmanager:CreateSecret", "secretsmanager:TagResource", "secretsmanager:DescribeSecret"],
+      "Resource": "arn:aws:secretsmanager:ap-south-1:036706657723:secret:rds!db-*"
+    },
+    {
+      "Sid": "DescribeRegionalEncryptionKeys",
+      "Effect": "Allow",
+      "Action": "kms:DescribeKey",
+      "Resource": "arn:aws:kms:ap-south-1:036706657723:key/*"
+    },
+    {
+      "Sid": "AllowRdsServiceEncryptionGrants",
+      "Effect": "Allow",
+      "Action": "kms:CreateGrant",
+      "Resource": "arn:aws:kms:ap-south-1:036706657723:key/*",
+      "Condition": {"StringEquals": {"kms:ViaService": "rds.ap-south-1.amazonaws.com"}, "Bool": {"kms:GrantIsForAWSResource": "true"}}
+    },
+    {
+      "Sid": "ReadRdsServiceLinkedRole",
+      "Effect": "Allow",
+      "Action": "iam:GetRole",
+      "Resource": "arn:aws:iam::036706657723:role/aws-service-role/rds.amazonaws.com/AWSServiceRoleForRDS"
+    },
+    {
+      "Sid": "CreateRdsServiceLinkedRoleIfAbsent",
+      "Effect": "Allow",
+      "Action": "iam:CreateServiceLinkedRole",
+      "Resource": "*",
+      "Condition": {"StringEquals": {"iam:AWSServiceName": "rds.amazonaws.com"}}
+    },
+    {
+      "Sid": "ManageDatabaseLogGroup",
+      "Effect": "Allow",
+      "Action": ["logs:CreateLogGroup", "logs:DeleteLogGroup", "logs:PutRetentionPolicy", "logs:DeleteRetentionPolicy", "logs:TagResource", "logs:UntagResource", "logs:ListTagsForResource", "logs:TagLogGroup", "logs:UntagLogGroup", "logs:ListTagsLogGroup"],
+      "Resource": ["arn:aws:logs:ap-south-1:036706657723:log-group:/aws/rds/instance/commerce-dev-postgres/postgresql", "arn:aws:logs:ap-south-1:036706657723:log-group:/aws/rds/instance/commerce-dev-postgres/postgresql:*"]
+    }
+  ]
+}
