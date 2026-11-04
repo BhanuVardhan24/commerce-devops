@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: commerce
+---
+apiVersion: external-secrets.io/v1
+kind: SecretStore
+metadata:
+  name: commerce-aws
+  namespace: commerce
+spec:
+  provider:
+    aws:
+      service: SecretsManager
+      region: ap-south-1
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: commerce-webhook
+  namespace: commerce
+spec:
+  refreshInterval: 1h
+
+  secretStoreRef:
+    name: commerce-aws
+    kind: SecretStore
+
+  target:
+    name: commerce-webhook
+    creationPolicy: Owner
+
+  data:
+    - secretKey: WEBHOOK_SECRET
+      remoteRef:
+        key: commerce/dev/webhook
+        property: WEBHOOK_SECRET
