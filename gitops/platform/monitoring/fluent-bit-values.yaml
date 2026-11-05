@@ -1,0 +1,47 @@
+kind: DaemonSet
+fullnameOverride: commerce-fluent-bit
+
+serviceAccount:
+  create: true
+  name: commerce-fluent-bit
+
+rbac:
+  create: false
+
+env:
+  - name: AWS_EC2_METADATA_DISABLED
+    value: "true"
+
+resources:
+  requests:
+    cpu: 25m
+    memory: 64Mi
+  limits:
+    memory: 128Mi
+
+config:
+  inputs: |
+    [INPUT]
+        Name              tail
+        Path              /var/log/containers/*_commerce_*.log
+        Tag               commerce.*
+        multiline.parser  cri
+        DB                /tmp/commerce-tail.db
+        Mem_Buf_Limit     10MB
+        Skip_Long_Lines   On
+        Read_from_Head    Off
+
+  filters: |
+    [FILTER]
+        Name    grep
+        Match   commerce.*
+        Exclude log GET /(readyz|healthz) HTTP/
+
+  outputs: |
+    [OUTPUT]
+        Name                cloudwatch_logs
+        Match               commerce.*
+        region              ap-south-1
+        log_group_name      /aws/eks/commerce-dev/commerce
+        log_stream_prefix   commerce-
+        auto_create_group   false

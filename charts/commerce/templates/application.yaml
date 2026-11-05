@@ -9,6 +9,7 @@ spec:
 {{ if eq $name "worker" }}
   strategy:
     type: Recreate
+    rollingUpdate: null
 {{ end }}
   revisionHistoryLimit: 3
   selector:
