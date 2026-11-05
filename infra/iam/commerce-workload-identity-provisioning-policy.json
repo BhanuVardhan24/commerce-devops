@@ -21,16 +21,32 @@
       ],
       "Resource": [
   "arn:aws:iam::036706657723:role/CommerceExternalSecretsRole",
-  "arn:aws:iam::036706657723:role/CommercePaymentsRole"
+  "arn:aws:iam::036706657723:role/CommercePaymentsRole",
+   "arn:aws:iam::036706657723:role/CommerceLoadBalancerControllerRole"
 ]
     },
+    {
+  "Sid": "ManageControllerPolicyAttachment",
+  "Effect": "Allow",
+  "Action": [
+    "iam:AttachRolePolicy",
+    "iam:DetachRolePolicy"
+  ],
+  "Resource": "arn:aws:iam::036706657723:role/CommerceLoadBalancerControllerRole",
+  "Condition": {
+    "ArnEquals": {
+      "iam:PolicyARN": "arn:aws:iam::036706657723:policy/CommerceLoadBalancerControllerPolicy"
+    }
+  }
+},
     {
       "Sid": "PassExternalSecretsRole",
       "Effect": "Allow",
       "Action": "iam:PassRole",
       "Resource": [
   "arn:aws:iam::036706657723:role/CommerceExternalSecretsRole",
-  "arn:aws:iam::036706657723:role/CommercePaymentsRole"
+  "arn:aws:iam::036706657723:role/CommercePaymentsRole",
+  "arn:aws:iam::036706657723:role/CommerceLoadBalancerControllerRole"
 ],
       "Condition": {
         "StringEquals": {

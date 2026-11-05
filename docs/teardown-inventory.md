@@ -146,3 +146,34 @@ Cleanup:
 - Keep provisioning permissions until Terraform teardown completes.
 - Delete the project provisioning policy afterward.
 - Do not delete the AWS-managed AmazonEKS_CNI_Policy itself.
+
+## Storefront ALB
+
+Terraform-managed:
+- Role: CommerceLoadBalancerControllerRole
+- Policy attachment: CommerceLoadBalancerControllerPolicy
+- Pod Identity: kube-system / aws-load-balancer-controller
+
+Manually created:
+- Managed policy: CommerceLoadBalancerControllerPolicy
+- Existing workload provisioning policy extended for this role.
+
+Helm:
+- Release: aws-load-balancer-controller, namespace kube-system
+- Ingress: commerce/commerce-storefront, application chart
+
+Controller-managed AWS resources:
+- ALB: commerce-dev-storefront
+- Listener, target group, security groups and rules
+- Discover using the Ingress and controller resource tags.
+
+Cleanup order:
+1. Delete the storefront Ingress while the controller and IAM role work.
+2. Wait for ALB, target group and associated security-group cleanup.
+3. Uninstall the controller.
+4. Remove its Terraform identity resources.
+5. Delete the manually created controller IAM policy after detachment.
+
+Account-shared:
+- AWSServiceRoleForElasticLoadBalancing may be created automatically.
+- Retain if used by other load balancers.

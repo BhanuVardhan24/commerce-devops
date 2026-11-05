@@ -8,6 +8,10 @@ redis:
 payments:
   queueUrl: ""
 
+ingress:
+  enabled: false
+  allowedCidrs: []
+
 components:
   web:
     replicas: 1
