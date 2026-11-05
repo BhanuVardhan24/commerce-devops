@@ -1,0 +1,18 @@
+clusterName: commerce-dev
+region: ap-south-1
+vpcId: vpc-0a1302f9a61ca4cbd
+
+replicaCount: 2
+
+serviceAccount:
+  create: true
+  name: aws-load-balancer-controller
+
+enableServiceMutatorWebhook: false
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    memory: 256Mi
