@@ -36,8 +36,34 @@
   <footer>Demo store. No real money. Release: {{ version }}</footer>
 </main>
 <script>
+
+  function newUuid() {
+  if (typeof globalThis.crypto.randomUUID === 'function') {
+    return globalThis.crypto.randomUUID();
+  }
+
+  const bytes = new Uint8Array(16);
+  globalThis.crypto.getRandomValues(bytes);
+
+  // UUID version 4 and RFC variant bits.
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+
+  const hex = Array.from(
+    bytes,
+    byte => byte.toString(16).padStart(2, '0')
+  ).join('');
+
+  return [
+    hex.slice(0, 8),
+    hex.slice(8, 12),
+    hex.slice(12, 16),
+    hex.slice(16, 20),
+    hex.slice(20)
+  ].join('-');
+}
 const stored = localStorage.getItem('commerce-cart');
-let cartId = stored || crypto.randomUUID();
+let cartId = stored || newUuid();
 localStorage.setItem('commerce-cart', cartId);
 let items = [], checkoutKey = null, locked = false;
 const cartView = document.getElementById('cart'), result = document.getElementById('result');
@@ -66,7 +92,7 @@ document.getElementById('checkout').onclick = async () => {
   locked = true;
   const mode = document.getElementById('mode'); mode.disabled = true;
   document.getElementById('checkout').disabled = true;
-  checkoutKey ||= crypto.randomUUID();
+checkoutKey ||= newUuid();
   try {
     const options = json('POST', {cart_id:cartId, mode:mode.value});
     options.headers['Idempotency-Key'] = checkoutKey;
