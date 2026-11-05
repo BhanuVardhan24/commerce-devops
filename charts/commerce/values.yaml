@@ -1,6 +1,6 @@
 image:
   repository: 036706657723.dkr.ecr.ap-south-1.amazonaws.com/commerce/catalog
-  digest: sha256:8c64fbf94327aff442123815bcf1f4419e64283f43effd622196da13f271dc4c
+  digest: sha256:8d7a18db28365761eadda4579d1c17d4d5dbb737653d64991f0e893183efb9c9
 
 redis:
   image: redis:7.4.12-alpine
