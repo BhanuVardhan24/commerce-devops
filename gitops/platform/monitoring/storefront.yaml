@@ -1,0 +1,40 @@
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: commerce-storefront
+  namespace: monitoring
+  labels:
+    monitor: commerce
+spec:
+  jobName: commerce-storefront
+  interval: 15s
+  scrapeTimeout: 10s
+  module: http_2xx
+  prober:
+    url: commerce-prober.monitoring.svc.cluster.local:9115
+  targets:
+    staticConfig:
+      static:
+        - http://commerce-web.commerce.svc.cluster.local:8000/readyz
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: commerce-storefront
+  namespace: monitoring
+  labels:
+    release: monitoring
+spec:
+  groups:
+    - name: commerce.storefront
+      rules:
+        - alert: CommerceStorefrontUnavailable
+          expr: |
+            (probe_success{job="commerce-storefront"} == 0)
+            or absent(probe_success{job="commerce-storefront"})
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: Commerce storefront readiness probe is failing
+            description: The internal storefront readiness check has failed or produced no samples for two minutes.

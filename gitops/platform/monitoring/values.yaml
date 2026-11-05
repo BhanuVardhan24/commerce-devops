@@ -1,0 +1,39 @@
+fullnameOverride: commerce-monitoring
+
+# AWS manages these control-plane components in EKS.
+kubeEtcd:
+  enabled: false
+
+kubeControllerManager:
+  enabled: false
+
+kubeScheduler:
+  enabled: false
+
+grafana:
+  service:
+    type: ClusterIP
+  persistence:
+    enabled: false
+
+alertmanager:
+  enabled: true
+
+prometheus:
+  prometheusSpec:
+    retention: 2d
+    retentionSize: 2GB
+    scrapeInterval: 30s
+    evaluationInterval: 30s
+
+    probeSelectorNilUsesHelmValues: false
+    probeSelector:
+      matchLabels:
+        monitor: commerce
+
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        memory: 768Mi
