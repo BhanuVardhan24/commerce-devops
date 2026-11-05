@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: commerce
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/BhanuVardhan24/commerce-devops.git
+    targetRevision: main
+    path: charts/commerce
+    helm:
+      releaseName: commerce
+      valueFiles:
+        - values-dev.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: commerce
+  syncPolicy:
+    automated:
+      enabled: true
+      selfHeal: true
+      prune: false
