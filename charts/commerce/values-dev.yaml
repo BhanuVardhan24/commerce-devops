@@ -1,0 +1,2 @@
+payments:
+  queueUrl: "https://sqs.ap-south-1.amazonaws.com/036706657723/commerce-dev-payments"

@@ -6,6 +6,10 @@ metadata:
   name: commerce-{{ $name }}
 spec:
   replicas: {{ $component.replicas }}
+{{ if eq $name "worker" }}
+  strategy:
+    type: Recreate
+{{ end }}
   revisionHistoryLimit: 3
   selector:
     matchLabels:
@@ -17,6 +21,9 @@ spec:
         app: commerce-{{ $name }}
         release: {{ $.Release.Name }}
     spec:
+{{ if or (eq $name "worker") (eq $name "dispatcher") }}
+      serviceAccountName: commerce-payments
+{{ end }}
       automountServiceAccountToken: false
       terminationGracePeriodSeconds: 30
 
@@ -43,7 +50,7 @@ spec:
           envFrom:
             - secretRef:
                 name: commerce-database
-{{ if ne $name "worker" }}
+{{ if hasKey $component "readinessPath" }}
             - secretRef:
                 name: commerce-webhook
 {{ end }}
@@ -61,6 +68,12 @@ spec:
               value: verify-full
             - name: PGSSLROOTCERT
               value: /etc/rds-ca/rds-ca.pem
+{{ if or (eq $name "worker") (eq $name "dispatcher") }}
+            - name: AWS_REGION
+              value: ap-south-1
+            - name: PAYMENTS_QUEUE_URL
+              value: {{ required "Set payments.queueUrl" $.Values.payments.queueUrl | quote }}
+{{ end }}
 
           resources:
             requests:
@@ -74,7 +87,7 @@ spec:
               mountPath: /etc/rds-ca
               readOnly: true
 
-{{ if ne $name "worker" }}
+{{ if hasKey $component "readinessPath" }}
           ports:
             - name: http
               containerPort: 8000
@@ -106,7 +119,7 @@ spec:
           configMap:
             name: commerce-rds-ca
 
-{{ if ne $name "worker" }}
+{{ if hasKey $component "readinessPath" }}
 ---
 apiVersion: v1
 kind: Service

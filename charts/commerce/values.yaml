@@ -5,6 +5,9 @@ image:
 redis:
   image: redis:7.4.12-alpine
 
+payments:
+  queueUrl: ""
+
 components:
   web:
     replicas: 1
@@ -37,4 +40,13 @@ components:
     command:
       - python
       - -m
-      - app.worker
+      - app.sqs_payments
+      - consume
+
+  dispatcher:
+    replicas: 1
+    command:
+      - python
+      - -m
+      - app.sqs_payments
+      - dispatch
