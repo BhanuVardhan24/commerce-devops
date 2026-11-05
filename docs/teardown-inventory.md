@@ -110,3 +110,21 @@ Current limitations:
 Cleanup:
 - helm uninstall commerce -n commerce
 - Helm uninstall does not delete RDS data or ESO-managed Secrets.
+
+## SQS payment workloads
+
+- Role: CommercePaymentsRole
+- Inline policy: CommercePaymentsQueueAccess
+- Pod Identity association: commerce / commerce-payments
+- Service account: commerce-payments
+- Deployment added: commerce-dispatcher
+- commerce-worker changed to SQS consumption.
+- Existing payments queue and DLQ reused.
+- Provisioning policy extended:
+  CommerceWorkloadIdentityProvisioningPolicy
+
+Cleanup:
+- Remove application workloads before their Pod Identity association.
+- Terraform removes the association, role policy, and role.
+- Queue/DLQ remain managed by the existing data module.
+- Application delivery is at least once, with duplicate-safe processing.
