@@ -22,9 +22,53 @@
       "Resource": [
   "arn:aws:iam::036706657723:role/CommerceExternalSecretsRole",
   "arn:aws:iam::036706657723:role/CommercePaymentsRole",
-   "arn:aws:iam::036706657723:role/CommerceLoadBalancerControllerRole"
+   "arn:aws:iam::036706657723:role/CommerceLoadBalancerControllerRole",
+   "arn:aws:iam::036706657723:role/CommerceFluentBitRole"
 ]
     },
+    {
+  "Sid": "ReadObservabilityResources",
+  "Effect": "Allow",
+  "Action": [
+    "logs:DescribeLogGroups",
+    "cloudwatch:DescribeAlarms"
+  ],
+  "Resource": "*",
+  "Condition": {
+    "StringEquals": {
+      "aws:RequestedRegion": "ap-south-1"
+    }
+  }
+},
+{
+  "Sid": "ManageCommerceLogGroup",
+  "Effect": "Allow",
+  "Action": [
+    "logs:CreateLogGroup",
+    "logs:DeleteLogGroup",
+    "logs:PutRetentionPolicy",
+    "logs:DeleteRetentionPolicy",
+    "logs:ListTagsForResource",
+    "logs:TagResource",
+    "logs:UntagResource"
+  ],
+  "Resource": [
+    "arn:aws:logs:ap-south-1:036706657723:log-group:/aws/eks/commerce-dev/commerce",
+    "arn:aws:logs:ap-south-1:036706657723:log-group:/aws/eks/commerce-dev/commerce:*"
+  ]
+},
+{
+  "Sid": "ManageCommerceQueueAlarms",
+  "Effect": "Allow",
+  "Action": [
+    "cloudwatch:PutMetricAlarm",
+    "cloudwatch:DeleteAlarms",
+    "cloudwatch:ListTagsForResource",
+    "cloudwatch:TagResource",
+    "cloudwatch:UntagResource"
+  ],
+  "Resource": "arn:aws:cloudwatch:ap-south-1:036706657723:alarm:commerce-dev-payments-*"
+},
     {
   "Sid": "ManageControllerPolicyAttachment",
   "Effect": "Allow",
@@ -46,7 +90,8 @@
       "Resource": [
   "arn:aws:iam::036706657723:role/CommerceExternalSecretsRole",
   "arn:aws:iam::036706657723:role/CommercePaymentsRole",
-  "arn:aws:iam::036706657723:role/CommerceLoadBalancerControllerRole"
+  "arn:aws:iam::036706657723:role/CommerceLoadBalancerControllerRole",
+  "arn:aws:iam::036706657723:role/CommerceFluentBitRole"
 ],
       "Condition": {
         "StringEquals": {

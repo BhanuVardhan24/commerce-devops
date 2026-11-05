@@ -7,6 +7,9 @@ kubeEtcd:
 kubeControllerManager:
   enabled: false
 
+nodeExporter:
+  enabled: false
+
 kubeScheduler:
   enabled: false
 
