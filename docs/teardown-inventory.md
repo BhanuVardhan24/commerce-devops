@@ -128,3 +128,21 @@ Cleanup:
 - Terraform removes the association, role policy, and role.
 - Queue/DLQ remain managed by the existing data module.
 - Application delivery is at least once, with duplicate-safe processing.
+
+## Dedicated VPC CNI identity
+
+- Terraform role: CommerceVpcCniRole
+- Attachment: AWS-managed AmazonEKS_CNI_Policy
+- Add-on-owned Pod Identity association:
+  commerce-dev / kube-system / aws-node
+- CNI policy removed from CommerceEksNodeRole.
+
+Manual provisioning:
+- Policy: CommerceCniProvisioningPolicy
+- Attached to CommerceDevMachineRole.
+
+Cleanup:
+- Terraform manages the add-on association, role, and attachment.
+- Keep provisioning permissions until Terraform teardown completes.
+- Delete the project provisioning policy afterward.
+- Do not delete the AWS-managed AmazonEKS_CNI_Policy itself.

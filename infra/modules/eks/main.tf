@@ -3,7 +3,6 @@ locals {
   node_policies = {
     worker = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
     pull   = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPullOnly"
-    cni    = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
   }
   addons = toset(["vpc-cni", "coredns", "kube-proxy"])
 }
@@ -155,5 +154,16 @@ resource "aws_eks_addon" "core" {
   addon_version               = lookup(var.addon_pins, each.key, data.aws_eks_addon_version.compatible[each.key].version)
   resolve_conflicts_on_create = "OVERWRITE"
   resolve_conflicts_on_update = "PRESERVE"
-  depends_on                  = [aws_eks_node_group.main]
+  depends_on = [
+    aws_eks_node_group.main,
+    aws_iam_role_policy_attachment.cni
+  ]
+    dynamic "pod_identity_association" {
+    for_each = each.key == "vpc-cni" ? [1] : []
+
+    content {
+      service_account = "aws-node"
+      role_arn        = aws_iam_role.cni.arn
+    }
+  }
 }
