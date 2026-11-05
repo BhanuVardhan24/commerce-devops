@@ -19,8 +19,8 @@ resource "aws_iam_role" "cni" {
 
         Condition = {
           StringEquals = {
-            "aws:SourceAccount"                       = "036706657723"
-            "aws:RequestTag/kubernetes-namespace"     = "kube-system"
+            "aws:SourceAccount"                         = "036706657723"
+            "aws:RequestTag/kubernetes-namespace"       = "kube-system"
             "aws:RequestTag/kubernetes-service-account" = "aws-node"
           }
 
