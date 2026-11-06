@@ -21,3 +21,19 @@ spec:
       enabled: true
       selfHeal: true
       prune: false
+    syncOptions:
+      - RespectIgnoreDifferences=true
+
+  ignoreDifferences:
+    - group: ""
+      kind: Service
+      name: commerce-web
+      namespace: commerce
+      jsonPointers:
+        - /spec/selector/rollouts-pod-template-hash
+    - group: ""
+      kind: Service
+      name: commerce-web-preview
+      namespace: commerce
+      jsonPointers:
+        - /spec/selector/rollouts-pod-template-hash

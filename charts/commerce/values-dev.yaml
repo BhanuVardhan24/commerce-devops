@@ -6,3 +6,7 @@ ingress:
   allowedCidrs:
     - "13.202.177.91/32"
     - "49.43.227.31"
+
+
+blueGreen:
+  enabled: true
