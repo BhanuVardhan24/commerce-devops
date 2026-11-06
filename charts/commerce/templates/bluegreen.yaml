@@ -1,0 +1,61 @@
+{{- $blueGreen := .Values.blueGreen | default dict }}
+{{- if $blueGreen.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: commerce-web-preview
+spec:
+  type: ClusterIP
+  selector:
+    app: commerce-web
+    release: {{ .Release.Name }}
+  ports:
+    - name: http
+      port: 8000
+      targetPort: http
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: commerce-preview-ready
+spec:
+  metrics:
+    - name: preview-ready
+      initialDelay: 30s
+      interval: 15s
+      count: 3
+      failureLimit: 0
+      successCondition: len(result) == 1 && result[0] == 1
+      failureCondition: len(result) != 1 || result[0] != 1
+      provider:
+        prometheus:
+          address: http://commerce-monitoring-prometheus.monitoring.svc.cluster.local:9090
+          query: |
+            min(probe_success{job="commerce-storefront-preview"}) or vector(0)
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: commerce-web
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app: commerce-web
+      release: {{ .Release.Name }}
+  workloadRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: commerce-web
+    scaleDown: never
+  strategy:
+    blueGreen:
+      activeService: commerce-web
+      previewService: commerce-web-preview
+      autoPromotionEnabled: false
+      scaleDownDelaySeconds: 120
+      prePromotionAnalysis:
+        templates:
+          - templateName: commerce-preview-ready
+{{- end }}
