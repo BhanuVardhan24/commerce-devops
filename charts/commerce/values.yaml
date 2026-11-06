@@ -14,7 +14,7 @@ ingress:
 
 components:
   web:
-    replicas: 1
+    replicas: 0
     command:
       - gunicorn
       - --bind
